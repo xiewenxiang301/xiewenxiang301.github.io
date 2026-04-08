@@ -975,7 +975,7 @@
 
             // Mobile Cards
             mobileCards.innerHTML = filteredData.map(item => `
-                <div class="mobile-card">
+                <div class="mobile-card-actions admin-only">
                     <div class="mobile-card-header">
                         <div class="mobile-card-name">${escapeHtml(item.name)}</div>
                         <div class="mobile-card-actions">
@@ -1154,10 +1154,19 @@
         });
     </script>
 <script>
-  if (localStorage.getItem('adminMode') !== 'true') {
-    const addBtn = document.getElementById('addBtn');
-    if (addBtn) addBtn.style.display = 'none';
-  }
+  // 页面加载完成后执行
+  document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('adminMode') !== 'true') {
+      // 隐藏添加按钮
+      const addBtn = document.getElementById('addBtn');
+      if (addBtn) addBtn.style.display = 'none';
+
+      // 隐藏所有管理员操作区域（包括移动端的编辑/删除按钮）
+      document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = 'none';
+      });
+    }
+  });
 </script>
 </body>
 </html>
