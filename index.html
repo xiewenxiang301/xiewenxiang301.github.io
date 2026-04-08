@@ -949,29 +949,31 @@
             emptyState.style.display = 'none';
             tableContainer.querySelector('.table-wrapper').style.display = 'block';
 
-            // Desktop Table
-            tbody.innerHTML = filteredData.map(item => `
-                <tr>
-                    <td class="business-name">${escapeHtml(item.name)}</td>
-                    <td class="price-cell price-yd">${parseFloat(item.ydPrice).toFixed(2)}<span class="price-unit">元</span></td>
-                    <td class="price-cell price-dl">${parseFloat(item.dlPrice).toFixed(2)}<span class="price-unit">元</span></td>
-                    <td class="actions">
-                        <button class="btn-action btn-edit" onclick="editBusiness(${item.id})" title="编辑">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                        </button>
-                        <button class="btn-action btn-delete" onclick="deleteBusiness(${item.id})" title="删除">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18"/>
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                            </svg>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+// Desktop Table
+const isAdmin = localStorage.getItem('adminMode') === 'true'; // 👈 新增这行
+tbody.innerHTML = filteredData.map(item => `
+    <tr>
+        <td class="business-name">${escapeHtml(item.name)}</td>
+        <td class="price-cell price-yd">${parseFloat(item.ydPrice).toFixed(2)}<span class="price-unit">元</span></td>
+        <td class="price-cell price-dl">${parseFloat(item.dlPrice).toFixed(2)}<span class="price-unit">元</span></td>
+        ${isAdmin ? `
+        <td class="actions">
+            <button class="btn-action btn-edit" onclick="editBusiness(${item.id})" title="编辑">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            </button>
+            <button class="btn-action btn-delete" onclick="deleteBusiness(${item.id})" title="删除">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                </svg>
+            </button>
+        </td>` : '<td class="actions"></td>'} <!-- 👈 不是管理员就只放一个空的 td -->
+    </tr>
+`).join('');
 
 // Mobile Cards
 const isAdmin = localStorage.getItem('adminMode') === 'true';
