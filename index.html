@@ -998,6 +998,17 @@ mobileCards.innerHTML = filteredData.map(item => `
                 </button>
             </div>` : ''}
         </div>
+        <!-- 价格信息对所有用户显示 -->
+        <div class="card-prices">
+            <div class="price-item">
+                <span class="price-label">移动单价</span>
+                <span class="price-value price-yd">${parseFloat(item.ydPrice).toFixed(2)}<span class="unit">元</span></span>
+            </div>
+            <div class="price-item">
+                <span class="price-label">电联单价</span>
+                <span class="price-value price-dl">${parseFloat(item.dlPrice).toFixed(2)}<span class="unit">元</span></span>
+            </div>
+        </div>
     </div>
 `).join('');
         }
