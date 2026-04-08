@@ -1154,18 +1154,47 @@
         });
     </script>
 <script>
-  // 页面加载完成后执行
-  document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getItem('adminMode') !== 'true') {
-      // 隐藏添加按钮
-      const addBtn = document.getElementById('addBtn');
-      if (addBtn) addBtn.style.display = 'none';
+  // === 管理员模式防护：禁止非管理员操作 ===
+  function protectAdminActions() {
+    if (localStorage.getItem('adminMode') === 'true') return; // 管理员放行
 
-      // 隐藏所有管理员操作区域（包括移动端的编辑/删除按钮）
-      document.querySelectorAll('.admin-only').forEach(el => {
-        el.style.display = 'none';
-      });
-    }
+    // 1. 禁用所有可编辑输入框（单价修改处）
+    document.querySelectorAll('input[type="number"], input[type="text"]').forEach(el => {
+      el.disabled = true;
+      el.style.backgroundColor = '#f8f9fa';
+      el.style.cursor = 'not-allowed';
+    });
+
+    // 2. 阻止所有编辑/删除按钮点击（无论有没有 class）
+    document.querySelectorAll('button').forEach(btn => {
+      const text = btn.textContent.trim();
+      const title = btn.title || '';
+      // 匹配常见关键词：编辑、delete、删、改、 pencil、trash
+      if (
+        text.includes('编辑') || text.includes('删') || text.includes('改') ||
+        title.includes('edit') || title.includes('delete') || title.includes('删除') ||
+        btn.classList.contains('btn-edit') || btn.classList.contains('btn-delete')
+      ) {
+        btn.onclick = function(e) {
+          e.preventDefault();
+          alert('⚠️ 仅管理员可操作，请先启用管理员模式');
+          return false;
+        };
+        // 可选：视觉上灰掉按钮
+        btn.style.opacity = '0.5';
+        btn.style.pointerEvents = 'none';
+      }
+    });
+
+    // 3. 阻止右键菜单/开发者工具篡改（防简单 hack）
+    document.addEventListener('contextmenu', e => {
+      if (!localStorage.getItem('adminMode')) e.preventDefault();
+    });
+  }
+
+  // 等待 DOM 加载 + 数据渲染完成后再执行
+  window.addEventListener('load', () => {
+    setTimeout(protectAdminActions, 300); // 等 JS 渲染完
   });
 </script>
 </body>
