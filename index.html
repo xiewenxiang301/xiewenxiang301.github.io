@@ -40,21 +40,6 @@
             border-color: #1890ff;
         }
 
-        .admin-btn {
-            display: block;
-            margin: 0 auto 15px;
-            padding: 8px 16px;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .admin-btn:hover {
-            background: #eee;
-        }
-
         .price-card {
             background: white;
             border-radius: 12px;
@@ -103,57 +88,6 @@
             font-weight: bold;
         }
 
-        .admin-panel {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .admin-input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-
-        .admin-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .admin-actions button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .btn-save {
-            background: #1890ff;
-            color: white;
-        }
-
-        .btn-cancel {
-            background: #f5f5f5;
-        }
-
-        .btn-reset {
-            background: #fff2e8;
-            color: #ff7d00;
-            margin-top: 8px;
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ffbc7d;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
         .empty-hint {
             text-align: center;
             color: #999;
@@ -172,28 +106,12 @@
     <h1 class="title">PCDN 业务单价查询</h1>
 
     <input type="text" class="search-box" id="searchInput" placeholder="🔍 搜索业务名称...">
-    <button class="admin-btn" id="adminBtn">管理员入口</button>
-
-    <div class="admin-panel" id="adminPanel">
-        <input type="password" class="admin-input" id="adminPwd" placeholder="请输入管理员密码">
-        <input type="text" class="admin-input" id="editName" placeholder="业务名称（例如：聚宝盆）">
-        <input type="number" class="admin-input" id="editMobile" placeholder="移动单价（元）">
-        <input type="number" class="admin-input" id="editUnicom" placeholder="电联单价（元）">
-        <div class="admin-actions">
-            <button class="btn-save" id="saveBtn">保存修改</button>
-            <button class="btn-cancel" id="cancelBtn">取消</button>
-        </div>
-        <button class="btn-reset" id="resetBtn">重置为默认价格</button>
-    </div>
 
     <div id="priceList"></div>
     <div class="tips">内部使用 · 禁止外传</div>
 
 <script>
-    // ====================== 【唯一配置】你只改这里 ======================
-    const ADMIN_PASSWORD = "123456";  // 你的密码
-
-    // 【云端永久价格】在这里修改！！！修改后上传GitHub，全世界永久同步
+    // 【价格数据】在这里修改即可
     const PRICE_DATA = [
     { name: "聚宝盆", mobile: 2400, unicom: 2800 },
     { name: "单宽业务", mobile: 1800, unicom: 2200 },
@@ -202,21 +120,10 @@
     { name: "金满贯", mobile: 3100, unicom: 3300 },
     { name: "定向J", mobile: 3300, unicom: 3600 }
     ];
-    // =================================================================
 
-    // 下面代码完全不用动
     let displayData = JSON.parse(JSON.stringify(PRICE_DATA));
     const priceListEl = document.getElementById('priceList');
     const searchInput = document.getElementById('searchInput');
-    const adminBtn = document.getElementById('adminBtn');
-    const adminPanel = document.getElementById('adminPanel');
-    const adminPwd = document.getElementById('adminPwd');
-    const editName = document.getElementById('editName');
-    const editMobile = document.getElementById('editMobile');
-    const editUnicom = document.getElementById('editUnicom');
-    const saveBtn = document.getElementById('saveBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const resetBtn = document.getElementById('resetBtn');
 
     // 渲染列表
     function renderList(data) {
@@ -251,66 +158,10 @@
         renderList(result);
     });
 
-    // 管理员面板
-    adminBtn.addEventListener('click', () => {
-        adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
-        adminPwd.value = '';
-        editName.value = '';
-        editMobile.value = '';
-        editUnicom.value = '';
-    });
-
-    cancelBtn.addEventListener('click', () => {
-        adminPanel.style.display = 'none';
-    });
-
-    // 保存（临时本地）
-    saveBtn.addEventListener('click', () => {
-        const pwd = adminPwd.value.trim();
-        const name = editName.value.trim();
-        const mobile = editMobile.value.trim();
-        const unicom = editUnicom.value.trim();
-
-        if (pwd !== ADMIN_PASSWORD) {
-            alert('密码错误！');
-            return;
-        }
-        if (!name || !mobile || !unicom) {
-            alert('请填写完整信息');
-            return;
-        }
-
-        const index = displayData.findIndex(i => i.name === name);
-        if (index >= 0) {
-            displayData[index].mobile = Number(mobile);
-            displayData[index].unicom = Number(unicom);
-        } else {
-            displayData.push({ name, mobile: Number(mobile), unicom: Number(unicom) });
-        }
-
-        localStorage.setItem("pcdn_temp", JSON.stringify(displayData));
-        renderList(displayData);
-        adminPanel.style.display = 'none';
-        alert('✅ 本地保存成功！\n\n⚠️ 永久生效需要：复制当前价格 → 去GitHub代码里修改！');
-    });
-
-    // 重置
-    resetBtn.addEventListener('click', () => {
-        if (confirm('确定要重置为默认价格吗？')) {
-            displayData = JSON.parse(JSON.stringify(PRICE_DATA));
-            localStorage.removeItem("pcdn_temp");
-            renderList(displayData);
-            alert('已重置为默认价格！');
-        }
-    });
-
     // 初始化
     window.onload = function() {
-        const local = localStorage.getItem("pcdn_temp");
-        if (local) {
-            displayData = JSON.parse(local);
-        }
         renderList(displayData);
     }
 </script>
 </body>
+</html>
