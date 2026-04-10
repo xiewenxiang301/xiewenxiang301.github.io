@@ -143,6 +143,17 @@
             background: #f5f5f5;
         }
 
+        .btn-reset {
+            background: #fff2e8;
+            color: #ff7d00;
+            margin-top: 8px;
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ffbc7d;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
         .empty-hint {
             text-align: center;
             color: #999;
@@ -172,35 +183,27 @@
             <button class="btn-save" id="saveBtn">保存修改</button>
             <button class="btn-cancel" id="cancelBtn">取消</button>
         </div>
+        <button class="btn-reset" id="resetBtn">重置为默认价格</button>
     </div>
 
     <div id="priceList"></div>
     <div class="tips">内部使用 · 禁止外传</div>
 
 <script>
-    // ====================== 你只需要改这里 ======================
-    const ADMIN_PASSWORD = "123456";
+    // ====================== 【唯一配置】你只改这里 ======================
+    const ADMIN_PASSWORD = "123456";  // 你的密码
 
-    // 初始默认价格（第一次打开会加载这个）
-    const DEFAULT_PRICES = [
+    // 【云端永久价格】在这里修改！！！修改后上传GitHub，全世界永久同步
+    const PRICE_DATA = [
         { name: "聚宝盆", mobile: 2400, unicom: 2800 },
         { name: "单宽业务", mobile: 1800, unicom: 2200 },
         { name: "汇聚业务", mobile: 1500, unicom: 1900 },
+        { name: "高质量资源", mobile: 3000, unicom: 3500 },
     ];
-    // ==========================================================
+    // =================================================================
 
-    // 永久存储逻辑（关键修复）
-    function getPrices() {
-        const saved = localStorage.getItem("pcdn_prices");
-        return saved ? JSON.parse(saved) : DEFAULT_PRICES;
-    }
-
-    function savePrices(data) {
-        localStorage.setItem("pcdn_prices", JSON.stringify(data));
-    }
-
-    let PRICE_DATA = getPrices();
-
+    // 下面代码完全不用动
+    let displayData = JSON.parse(JSON.stringify(PRICE_DATA));
     const priceListEl = document.getElementById('priceList');
     const searchInput = document.getElementById('searchInput');
     const adminBtn = document.getElementById('adminBtn');
@@ -211,7 +214,9 @@
     const editUnicom = document.getElementById('editUnicom');
     const saveBtn = document.getElementById('saveBtn');
     const cancelBtn = document.getElementById('cancelBtn');
+    const resetBtn = document.getElementById('resetBtn');
 
+    // 渲染列表
     function renderList(data) {
         if (!data || data.length === 0) {
             priceListEl.innerHTML = '<div class="empty-hint">暂无匹配的业务</div>';
@@ -237,12 +242,14 @@
         priceListEl.innerHTML = html;
     }
 
+    // 搜索
     searchInput.addEventListener('input', () => {
         const key = searchInput.value.trim().toLowerCase();
-        const result = PRICE_DATA.filter(item => item.name.toLowerCase().includes(key));
+        const result = displayData.filter(item => item.name.toLowerCase().includes(key));
         renderList(result);
     });
 
+    // 管理员面板
     adminBtn.addEventListener('click', () => {
         adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
         adminPwd.value = '';
@@ -255,7 +262,7 @@
         adminPanel.style.display = 'none';
     });
 
-    // 保存并永久存储
+    // 保存（临时本地）
     saveBtn.addEventListener('click', () => {
         const pwd = adminPwd.value.trim();
         const name = editName.value.trim();
@@ -271,21 +278,37 @@
             return;
         }
 
-        const index = PRICE_DATA.findIndex(i => i.name === name);
+        const index = displayData.findIndex(i => i.name === name);
         if (index >= 0) {
-            PRICE_DATA[index].mobile = Number(mobile);
-            PRICE_DATA[index].unicom = Number(unicom);
+            displayData[index].mobile = Number(mobile);
+            displayData[index].unicom = Number(unicom);
         } else {
-            PRICE_DATA.push({ name, mobile: Number(mobile), unicom: Number(unicom) });
+            displayData.push({ name, mobile: Number(mobile), unicom: Number(unicom) });
         }
 
-        savePrices(PRICE_DATA); // 永久保存
-        renderList(PRICE_DATA);
+        localStorage.setItem("pcdn_temp", JSON.stringify(displayData));
+        renderList(displayData);
         adminPanel.style.display = 'none';
-        alert('✅ 保存成功！数据已永久存储！');
+        alert('✅ 本地保存成功！\n\n⚠️ 永久生效需要：复制当前价格 → 去GitHub代码里修改！');
     });
 
-    renderList(PRICE_DATA);
+    // 重置
+    resetBtn.addEventListener('click', () => {
+        if (confirm('确定要重置为默认价格吗？')) {
+            displayData = JSON.parse(JSON.stringify(PRICE_DATA));
+            localStorage.removeItem("pcdn_temp");
+            renderList(displayData);
+            alert('已重置为默认价格！');
+        }
+    });
+
+    // 初始化
+    window.onload = function() {
+        const local = localStorage.getItem("pcdn_temp");
+        if (local) {
+            displayData = JSON.parse(local);
+        }
+        renderList(displayData);
+    }
 </script>
 </body>
-</html>
