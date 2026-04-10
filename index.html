@@ -160,13 +160,9 @@
 <body>
     <h1 class="title">PCDN 业务单价查询</h1>
 
-    <!-- 搜索框 -->
     <input type="text" class="search-box" id="searchInput" placeholder="🔍 搜索业务名称...">
-
-    <!-- 管理员入口 -->
     <button class="admin-btn" id="adminBtn">管理员入口</button>
 
-    <!-- 管理员面板 -->
     <div class="admin-panel" id="adminPanel">
         <input type="password" class="admin-input" id="adminPwd" placeholder="请输入管理员密码">
         <input type="text" class="admin-input" id="editName" placeholder="业务名称（例如：聚宝盆）">
@@ -178,118 +174,118 @@
         </div>
     </div>
 
-    <!-- 价格列表 -->
     <div id="priceList"></div>
-
     <div class="tips">内部使用 · 禁止外传</div>
 
-    <script>
-        // ====================== 你只需要改这里 ======================
-        // 1. 管理员密码（自己记住）
-        const ADMIN_PASSWORD = "123456";
+<script>
+    // ====================== 你只需要改这里 ======================
+    const ADMIN_PASSWORD = "123456";
 
-        // 2. 业务价格（单位：元）
-        let PRICE_DATA = [
-            { name: "聚宝盆", mobile: 2400, unicom: 2800 },
-            { name: "单宽业务", mobile: 1800, unicom: 2200 },
-            { name: "汇聚业务", mobile: 1500, unicom: 1900 },
-            { name: "高质量精品资源", mobile: 3000, unicom: 3500 },
-        ];
-        // ==========================================================
+    // 初始默认价格（第一次打开会加载这个）
+    const DEFAULT_PRICES = [
+        { name: "聚宝盆", mobile: 2400, unicom: 2800 },
+        { name: "单宽业务", mobile: 1800, unicom: 2200 },
+        { name: "汇聚业务", mobile: 1500, unicom: 1900 },
+    ];
+    // ==========================================================
 
-        const priceListEl = document.getElementById('priceList');
-        const searchInput = document.getElementById('searchInput');
-        const adminBtn = document.getElementById('adminBtn');
-        const adminPanel = document.getElementById('adminPanel');
-        const adminPwd = document.getElementById('adminPwd');
-        const editName = document.getElementById('editName');
-        const editMobile = document.getElementById('editMobile');
-        const editUnicom = document.getElementById('editUnicom');
-        const saveBtn = document.getElementById('saveBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
+    // 永久存储逻辑（关键修复）
+    function getPrices() {
+        const saved = localStorage.getItem("pcdn_prices");
+        return saved ? JSON.parse(saved) : DEFAULT_PRICES;
+    }
 
-        // 渲染价格列表
-        function renderList(data) {
-            if (!data || data.length === 0) {
-                priceListEl.innerHTML = '<div class="empty-hint">暂无匹配的业务</div>';
-                return;
-            }
-            let html = '';
-            data.forEach(item => {
-                html += `
-                <div class="price-card">
-                    <div class="business-name">${item.name}</div>
-                    <div class="price-row">
-                        <div class="price-item mobile">
-                            <div class="price-label">移动</div>
-                            <div class="price-value">${item.mobile} 元</div>
-                        </div>
-                        <div class="price-item unicom">
-                            <div class="price-label">电联</div>
-                            <div class="price-value">${item.unicom} 元</div>
-                        </div>
+    function savePrices(data) {
+        localStorage.setItem("pcdn_prices", JSON.stringify(data));
+    }
+
+    let PRICE_DATA = getPrices();
+
+    const priceListEl = document.getElementById('priceList');
+    const searchInput = document.getElementById('searchInput');
+    const adminBtn = document.getElementById('adminBtn');
+    const adminPanel = document.getElementById('adminPanel');
+    const adminPwd = document.getElementById('adminPwd');
+    const editName = document.getElementById('editName');
+    const editMobile = document.getElementById('editMobile');
+    const editUnicom = document.getElementById('editUnicom');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    function renderList(data) {
+        if (!data || data.length === 0) {
+            priceListEl.innerHTML = '<div class="empty-hint">暂无匹配的业务</div>';
+            return;
+        }
+        let html = '';
+        data.forEach(item => {
+            html += `
+            <div class="price-card">
+                <div class="business-name">${item.name}</div>
+                <div class="price-row">
+                    <div class="price-item mobile">
+                        <div class="price-label">移动</div>
+                        <div class="price-value">${item.mobile} 元</div>
                     </div>
-                </div>`;
-            });
-            priceListEl.innerHTML = html;
+                    <div class="price-item unicom">
+                        <div class="price-label">电联</div>
+                        <div class="price-value">${item.unicom} 元</div>
+                    </div>
+                </div>
+            </div>`;
+        });
+        priceListEl.innerHTML = html;
+    }
+
+    searchInput.addEventListener('input', () => {
+        const key = searchInput.value.trim().toLowerCase();
+        const result = PRICE_DATA.filter(item => item.name.toLowerCase().includes(key));
+        renderList(result);
+    });
+
+    adminBtn.addEventListener('click', () => {
+        adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
+        adminPwd.value = '';
+        editName.value = '';
+        editMobile.value = '';
+        editUnicom.value = '';
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        adminPanel.style.display = 'none';
+    });
+
+    // 保存并永久存储
+    saveBtn.addEventListener('click', () => {
+        const pwd = adminPwd.value.trim();
+        const name = editName.value.trim();
+        const mobile = editMobile.value.trim();
+        const unicom = editUnicom.value.trim();
+
+        if (pwd !== ADMIN_PASSWORD) {
+            alert('密码错误！');
+            return;
+        }
+        if (!name || !mobile || !unicom) {
+            alert('请填写完整信息');
+            return;
         }
 
-        // 搜索功能
-        searchInput.addEventListener('input', () => {
-            const key = searchInput.value.trim().toLowerCase();
-            const result = PRICE_DATA.filter(item => item.name.toLowerCase().includes(key));
-            renderList(result);
-        });
+        const index = PRICE_DATA.findIndex(i => i.name === name);
+        if (index >= 0) {
+            PRICE_DATA[index].mobile = Number(mobile);
+            PRICE_DATA[index].unicom = Number(unicom);
+        } else {
+            PRICE_DATA.push({ name, mobile: Number(mobile), unicom: Number(unicom) });
+        }
 
-        // 管理员面板开关
-        adminBtn.addEventListener('click', () => {
-            adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
-            adminPwd.value = '';
-            editName.value = '';
-            editMobile.value = '';
-            editUnicom.value = '';
-        });
-
-        cancelBtn.addEventListener('click', () => {
-            adminPanel.style.display = 'none';
-        });
-
-        // 保存修改（密码验证）
-        saveBtn.addEventListener('click', () => {
-            const pwd = adminPwd.value.trim();
-            const name = editName.value.trim();
-            const mobile = editMobile.value.trim();
-            const unicom = editUnicom.value.trim();
-
-            if (pwd !== ADMIN_PASSWORD) {
-                alert('密码错误！');
-                return;
-            }
-            if (!name || !mobile || !unicom) {
-                alert('请填写完整信息');
-                return;
-            }
-
-            // 新增或修改业务
-            const index = PRICE_DATA.findIndex(i => i.name === name);
-            if (index >= 0) {
-                PRICE_DATA[index].mobile = Number(mobile);
-                PRICE_DATA[index].unicom = Number(unicom);
-            } else {
-                PRICE_DATA.push({ 
-                    name, 
-                    mobile: Number(mobile), 
-                    unicom: Number(unicom) 
-                });
-            }
-
-            renderList(PRICE_DATA);
-            adminPanel.style.display = 'none';
-            alert('保存成功！');
-        });
-
-        // 初始化
+        savePrices(PRICE_DATA); // 永久保存
         renderList(PRICE_DATA);
-    </script>
+        adminPanel.style.display = 'none';
+        alert('✅ 保存成功！数据已永久存储！');
+    });
+
+    renderList(PRICE_DATA);
+</script>
 </body>
 </html>
